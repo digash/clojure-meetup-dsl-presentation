@@ -1,0 +1,106 @@
+#### Copyright (c) 2010 Dimitry Gashinsky. All rights reserved.
+####
+#### Author: Dimitry Gashinsky (dimitry :at gashinsky :dot com)
+#### Id: FA20F194-3FA8-4393-B7F4-A5A89212CF40
+#+STARTUP: beamer
+#+LaTeX_CLASS: beamer
+#+MACRO: BEAMERMODE presentation
+#+MACRO: BEAMERTHEME Pittsburgh
+#+MACRO: BEAMERCOLORTHEME seahorse
+#+MACRO: BEAMERSUBJECT DSL Clojure
+#+MACRO: BEAMERINSTITUTE Pico Quantitative Trading LLC.
+#+TITLE: Pragmatic DSLs using Clojure
+#+AUTHOR: Dimitry Gashinsky (@digash)
+
+* Introduction
+
+** Who am I?
+#+LaTeX:\usebackgroundtemplate{\includegraphics[width=\paperwidth]{/Users/dig/Documents/clojure-meetup-dsl-presentation/2010-08-06-10.49.51.png}}
+##+LaTeX:\includegraphics{/Users/dig/Documents/clojure-meetup-dsl-presentation/2010-08-06-10.49.51.png}
+##+LaTeX:\usebackgroundtemplate{\includegraphics[width=\paperwidth]{/Applications/Emacs.app/Contents/Resources/etc/images/icons/hicolor/128x128/apps/emacs.png}}
+##+LaTeX:\includegraphics{/Applications/Emacs.app/Contents/Resources/etc/images/icons/hicolor/128x128/apps/emacs.png}
+
+*** Used to be by day
+
+**** Coder for financial industry.
+
+*** Used to be at night
+
+**** Lisp fanatic, computation addict and AI enthusiast.
+
+*** Now in twilight
+
+**** VP of engineering for Pico Quantitative Trading, which includes all of the above.
+
+* Main Part
+
+** definition by listing
+   1. parasitic language
+   2. targeted towards specific problem
+
+** Quick dip into Clojure features useful for DSLs
+
+*** unquote and unquote-splicing
+
+*** code as data
+
+*** macrology
+
+** Overview of DSLs in Clojure
+
+*** TODO search article about clojure DSLs
+
+*** TODO search for blog about DSLs
+
+** Common usage
+
+*** configuration language
+
+** Message Description Language
+
+*** Every application needs a DSL
+
+* Questions
+
+** Questions
+
+*** Questions?
+
+*** mailto:dimitry@gashinsky.com
+
+*** twitter:@digash
+
+*** xmpp:i@digash.com
+
+*** http://blog.digash.com
+
+
+** Some interesting stuff
+
+*** an important point
+
+    - subpoint a
+
+    - subpoint b
+
+*** and some Clojure
+
+#+begin_LaTeX
+\begin{lstlisting}[language=Clojure]
+(defn slice [^ByteBuffer b n]
+  (vec (for [p (range 0 (.capacity b) (length DBackMmap))]
+         (let [^ByteBuffer b (.position b p)
+               ^ByteBuffer s (.slice b)]
+           (.limit s (length DBackMmap))))))
+\end{lstlisting}
+#+end_LaTeX
+
+#+srcname: basic-clojure
+#+begin_src clojure :results silent
+  (+ 1 4)
+#+end_src
+
+#+srcname: sh
+#+begin_src sh :results silent
+  ls
+#+end_src
