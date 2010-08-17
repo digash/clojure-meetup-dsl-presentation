@@ -89,7 +89,7 @@
 
 * Notes
 ** Structure and Interpretation of Computer Programs
-*** When in need of deep wisdom use the book^\ref{fig:sicp}.
+*** When in need of deep wisdom use the book^{\ref{fig:sicp}}.
     #+CAPTION:    SICP
     #+LABEL:      fig:sicp
     #+ATTR_LaTeX: width=0.4\textwidth
@@ -102,14 +102,14 @@
        implement these languages
 
 ** Implementing languages is not that scary.
-*** The book^\ref{fig:sicp} tells us
+*** The book^{\ref{fig:sicp}} tells us
     - "The evaluator [or compiler], which determines the meaning of
       expressions in a programming language, is just another program."
 ** "Maxwell’s Equations of Software!" -- Alan Kay
-   #+CAPTION:    LISP 1.5 Programmer Manual Page 13
-   #+LABEL:      fig:lisp-1.5
-   #+ATTR_LaTeX: width=0.3\textwidth
-   [[file:lisp-1.5-p13.png]]
+   #+CAPTION:    LISP 1.5 Programmer Manual page 13
+   #+LABEL:      fig:lisp-1.5-p13
+   #+ATTR_LaTeX: width=0.4\textwidth
+   [[file:lisp-1_5-p13.png]]
 
 ** Why Rich should have all the fn?
    - "We come to see ourselves as designers of languages, rather
