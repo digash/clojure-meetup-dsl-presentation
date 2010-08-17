@@ -9,28 +9,46 @@
 #+MACRO: BEAMERCOLORTHEME seahorse
 #+MACRO: BEAMERSUBJECT DSL Clojure
 #+MACRO: BEAMERINSTITUTE Pico Quantitative Trading LLC.
-#+TITLE: Pragmatic DSLs using Clojure
+#+TITLE: DSL in Clojure
 #+AUTHOR: Dimitry Gashinsky (@digash)
 
 * Introduction
 
-** Who am I?
-#+LaTeX:\usebackgroundtemplate{\includegraphics[width=\paperwidth]{/Users/dig/Documents/clojure-meetup-dsl-presentation/2010-08-06-10.49.51.png}}
-##+LaTeX:\includegraphics{/Users/dig/Documents/clojure-meetup-dsl-presentation/2010-08-06-10.49.51.png}
-##+LaTeX:\usebackgroundtemplate{\includegraphics[width=\paperwidth]{/Applications/Emacs.app/Contents/Resources/etc/images/icons/hicolor/128x128/apps/emacs.png}}
-##+LaTeX:\includegraphics{/Applications/Emacs.app/Contents/Resources/etc/images/icons/hicolor/128x128/apps/emacs.png}
-
+** Who am I? _vanity
 *** Used to be by day
-
-**** Coder for financial industry.
+    - Coder for financial industry.
 
 *** Used to be at night
-
-**** Lisp fanatic, computation addict and AI enthusiast.
+    - Lisp enthusiast and computational philosopher.
 
 *** Now in twilight
+    - VP of engineering for Pico Quantitative Trading, which includes
+      all of the above.
 
-**** VP of engineering for Pico Quantitative Trading, which includes all of the above.
+** First Lisp and DSL
+
+*** R-LISP
+    #+CAPTION:    R-LISP Book
+    #+LABEL:      fig:r-lisp-book
+    #+ATTR_LaTeX: width=0.4\textwidth wrap placement={r}
+    [[file:r-lisp-book.png]]
+
+*** REDUCE
+##+BEGIN_LaTeX
+    \begin{equation}
+    \int_0^y \! cos(2x) \, dx.
+    \end{equation}
+##+END_LaTeX
+*** to solve this integral type at the REPL
+#+BEGIN_SRC reduce
+    int(cos(2x),x,y,2y);
+#+END_SRC
+*** get this output
+#+BEGIN_EXAMPLE
+     SIN(4*Y) - SIN(2*Y)
+    ---------------------
+             2
+#+END_EXAMPLE
 
 * Main Part
 
@@ -41,15 +59,12 @@
 ** Quick dip into Clojure features useful for DSLs
 
 *** unquote and unquote-splicing
-
 *** code as data
-
 *** macrology
 
 ** Overview of DSLs in Clojure
 
 *** TODO search article about clojure DSLs
-
 *** TODO search for blog about DSLs
 
 ** Common usage
@@ -67,31 +82,50 @@
 *** Questions?
 
 *** mailto:dimitry@gashinsky.com
-
 *** twitter:@digash
-
 *** xmpp:i@digash.com
-
 *** http://blog.digash.com
 
 
-** Some interesting stuff
+* Notes
+** Structure and Interpretation of Computer Programs
+*** When in need of deep wisdom use the book^\ref{fig:sicp}.
+    #+CAPTION:    SICP
+    #+LABEL:      fig:sicp
+    #+ATTR_LaTeX: width=0.4\textwidth
+    [[file:sicp.png]]
 
-*** an important point
+** Metalinguistic Abstraction, A.K.A. "DSL"
+*** Establishing new languages
+    1. a powerful strategy for controlling complexity
+    2. particularly important to computer programming, because we can
+       implement these languages
 
-    - subpoint a
+** Implementing languages is not that scary.
+*** The book^\ref{fig:sicp} tells us
+    - "The evaluator [or compiler], which determines the meaning of
+      expressions in a programming language, is just another program."
+** "Maxwell’s Equations of Software!" -- Alan Kay
+   #+CAPTION:    LISP 1.5 Programmer Manual Page 13
+   #+LABEL:      fig:lisp-1.5
+   #+ATTR_LaTeX: width=0.3\textwidth
+   [[file:lisp-1.5-p13.png]]
 
-    - subpoint b
+** Why Rich should have all the fn?
+   - "We come to see ourselves as designers of languages, rather
+     than only users of languages designed by others."
+   - "... computer science itself becomes no more (and no less) than
+     the discipline of constructing appropriate descriptive languages."
 
-*** and some Clojure
+** and some Clojure
 
 #+begin_LaTeX
 \begin{lstlisting}[language=Clojure]
 (defn slice [^ByteBuffer b n]
-  (vec (for [p (range 0 (.capacity b) (length DBackMmap))]
+  (vec (for [p (range 0 (.capacity b) (length MarketDataMmap))]
          (let [^ByteBuffer b (.position b p)
                ^ByteBuffer s (.slice b)]
-           (.limit s (length DBackMmap))))))
+           (.limit s (length MarketDataMmap))))))
 \end{lstlisting}
 #+end_LaTeX
 
@@ -104,3 +138,5 @@
 #+begin_src sh :results silent
   ls
 #+end_src
+
+# LocalWords:  SICP
