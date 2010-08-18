@@ -9,14 +9,14 @@
 #+MACRO: BEAMERCOLORTHEME seahorse
 #+MACRO: BEAMERSUBJECT DSL Clojure
 #+MACRO: BEAMERINSTITUTE Pico Quantitative Trading LLC.
-#+TITLE: DSL in Clojure
+#+TITLE: Embedded Domain Specific Languages in Clojure
 #+AUTHOR: Dimitry Gashinsky (@digash)
 
 * Introduction
 
 ** Who am I? _vanity
 *** Used to be by day
-    - Coder for financial industry.
+    - Coder for financial, security and technology industries.
 
 *** Used to be at night
     - Lisp enthusiast and computational philosopher.
@@ -25,55 +25,170 @@
     - VP of engineering for Pico Quantitative Trading, which includes
       all of the above.
 
-** First Lisp and DSL
-
-*** R-LISP
-    #+CAPTION:    R-LISP Book
+** My First Lisp and DSL exposure. _history
+    #+CAPTION:    R-LISP Book (1991)
     #+LABEL:      fig:r-lisp-book
-    #+ATTR_LaTeX: width=0.4\textwidth wrap placement={r}
+    #+ATTR_LaTeX: width=0.4\textwidth
     [[file:r-lisp-book.png]]
 
-*** REDUCE
+** REDUCE
+*** To symbolically solve this:
 ##+BEGIN_LaTeX
     \begin{equation}
     \int_0^y \! cos(2x) \, dx.
     \end{equation}
 ##+END_LaTeX
-*** to solve this integral type at the REPL
+
+*** Type this at the REPL:
 #+BEGIN_SRC reduce
-    int(cos(2x),x,y,2y);
+    1: int(cos(2x),x,y,2y);
 #+END_SRC
-*** get this output
+
+*** Get this solution:
 #+BEGIN_EXAMPLE
      SIN(4*Y) - SIN(2*Y)
     ---------------------
              2
 #+END_EXAMPLE
 
+*** MAGIC !
+
 * Main Part
 
-** definition by listing
-   1. parasitic language
-   2. targeted towards specific problem
+** Definition of embedded (a.k.a. internal[fn:1]) DSL
+*** Enumerating some of the important attributes:
+    1. targeted towards specific problem
+       - limited in the scope as oppose to general purpose language
+    2. usually not turing complete
+    3. self-documenting
 
-** Quick dip into Clojure features useful for DSLs
+** Definition of embedded DSL _continue
+*** Enumerating more of the important attributes:
+    1. bottom-up design[fn:2]
+    2. parasitic in its nature
+       - feeds on host abstract syntax tree (AST)
+       - hides in the host's syntax
+       - reproduces more quickly and in greater numbers than its hosts
 
-*** unquote and unquote-splicing
-*** code as data
-*** macrology
+** Motivation for DSL
+*** When in need of wisdom use a good book^\ref{fig:sicp}
+    #+CAPTION:    Structure and Interpretation of Computer Programs
+    #+LABEL:      fig:sicp
+    #+ATTR_LaTeX: width=0.4\textwidth
+    [[file:sicp.png]]
 
-** Overview of DSLs in Clojure
+** Metalinguistic Abstraction (a.k.a. DSL)
+*** Establishing new languages
+    1. a powerful strategy for controlling complexity
+    2. particularly important to computer programming, because we can
+       implement these languages
 
-*** TODO search article about clojure DSLs
-*** TODO search for blog about DSLs
+** Implementing languages is not that scary _encouragement
+#+BEGIN_QUOTE
+    "The evaluator [or compiler], which determines the meaning of
+    expressions in a programming language, is just another program."
+#+END_QUOTE
 
-** Common usage
+** Maxwell’s Equations of Software! -- Alan Kay _inspiration
+    #+CAPTION:    LISP 1.5 Programmer Manual page 13
+    #+LABEL:      fig:lisp-1.5-p13
+    #+ATTR_LaTeX: width=0.4\textwidth
+    [[file:lisp-1_5-p13.png]]
+
+** Why Rich should have all the fn?
+#+BEGIN_QUOTE
+    "We come to see ourselves as designers of languages, rather
+    than only users of languages designed by others."
+#+END_QUOTE
+
+#+BEGIN_QUOTE
+    "... computer science itself becomes no more (and no less) than
+    the discipline of constructing appropriate descriptive languages."
+#+END_QUOTE
+
+** Clojure is an excellent host
+*** Short list of features useful for DSLs:
+  - =fn #()=
+  - unquote and unquote-splicing
+  - code as data
+  - macrology
+
+** Common usage in
 
 *** configuration language
-
-** Message Description Language
-
 *** Every application needs a DSL
+
+** Market Data Message Specification
+   #+CAPTION:    One small piece of huge spec
+   #+LABEL:      fig:message-spec
+   #+ATTR_LaTeX: width=1.0\textwidth
+   [[file:message-spec.png]]
+
+** Market Data Message Description Language
+#+BEGIN_SRC clojure
+(defmessage PacketHeader
+  [SequenceNumber    8 :numeric
+   "The sequence number of the first message in
+   the packet. If the packet contains more than
+   one message, subsequent message sequence numbers
+   are derived implicitly."]
+  [MessageCount      2 :numeric
+   "The number of message blocks contained in
+   the packet."]
+  [SessionIdentifier 1 :alphanumeric
+   "Number of the current daily session. This field
+   will begin as 0 and increment thereafter if the
+   feed is restarted during the trading day."])
+#+END_SRC
+
+** Memory Map Description Language
+#+BEGIN_SRC clojure
+(defmmap MarketDataMmap
+  [Timestamp       8 :integer]
+  [TradeTime       8 :integer]
+  [QuoteCondition  4 :character]
+  [TradeCondition  4 :character]
+  [Bid             4 :decimal]
+  [Ask             4 :decimal]
+  [Last            4 :decimal]
+  [BidSize         4 :integer]
+  [AskSize         4 :integer]
+  [LastSize        4 :integer]
+  [TotalAmount     8 :integer]
+  [Volume          4 :integer]
+  [Currency        3 :character]
+  [Latency         8 :integer]
+  [Symbol         12 :string])
+#+END_SRC
+
+** Macroexpanded defmmap
+   #+CAPTION:    defmmap macroexpanded
+   #+LABEL:      fig:defmmap-macroexpand
+   #+ATTR_LaTeX: width=1.0\textwidth
+   [[file:defmmap-macroexpand.png]]
+
+** Get Java API too
+#+ATTR_LaTeX: width=1.0\textwidth
+#+BEGIN_DITAA java-class-diagram.png --scale 2.5 -no-separation --no-shadows
+/-----------------------------------------------\
+| <<MmapAccessable>>                            |              +----------------------+
++-----------------------------------------------+              | MmapAccessor         |
+| Long getTimestamp(ByteBuffer, Integer);       |              +----------------------+
+| Long getTimestamp(ByteBuffer);                |              | getTimestamp(...)    |
+| Long putTimestamp(ByteBuffer, Long, Integer); |  implements  | putTimestamp(...)    |
+| Long putTimestamp(ByteBuffer, Long);          |<-------------| lengthTimestamp(...) |
+| Integer lengthTimestamp();                    |              | offsetTimestamp(...) |
+| Integer offsetTimestamp();                    |              | ... {d}              |
+| Integer positionTimestamp(Integer);           |              +----------------------+
+| ... {d}                                       |              
+\-----------------------------------------------/
+#+END_DITAA
+
+** Memory Map Accessable Java API
+#+INCLUDE: "MarketDataMmapAccessable.java" src java
+
+** Memory Map Accessor Java API
+#+INCLUDE: "MarketDataMmapAccessor.java" src java
 
 * Questions
 
@@ -88,34 +203,6 @@
 
 
 * Notes
-** Structure and Interpretation of Computer Programs
-*** When in need of deep wisdom use the book^{\ref{fig:sicp}}.
-    #+CAPTION:    SICP
-    #+LABEL:      fig:sicp
-    #+ATTR_LaTeX: width=0.4\textwidth
-    [[file:sicp.png]]
-
-** Metalinguistic Abstraction, A.K.A. "DSL"
-*** Establishing new languages
-    1. a powerful strategy for controlling complexity
-    2. particularly important to computer programming, because we can
-       implement these languages
-
-** Implementing languages is not that scary.
-*** The book^{\ref{fig:sicp}} tells us
-    - "The evaluator [or compiler], which determines the meaning of
-      expressions in a programming language, is just another program."
-** "Maxwell’s Equations of Software!" -- Alan Kay
-   #+CAPTION:    LISP 1.5 Programmer Manual page 13
-   #+LABEL:      fig:lisp-1.5-p13
-   #+ATTR_LaTeX: width=0.4\textwidth
-   [[file:lisp-1_5-p13.png]]
-
-** Why Rich should have all the fn?
-   - "We come to see ourselves as designers of languages, rather
-     than only users of languages designed by others."
-   - "... computer science itself becomes no more (and no less) than
-     the discipline of constructing appropriate descriptive languages."
 
 ** and some Clojure
 
@@ -140,3 +227,9 @@
 #+end_src
 
 # LocalWords:  SICP
+
+
+* Footnotes
+
+[fn:1] [[http://martinfowler.com/articles/languageWorkbench.html][Language Workbenches: The Killer-App for Domain Specific Languages?]]
+[fn:2] [[http://www.paulgraham.com/progbot.html][Programming Bottom-Up]]
