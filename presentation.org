@@ -32,22 +32,21 @@
     [[file:r-lisp-book.png]]
 
 ** REDUCE
-*** To symbolically solve this:
+*** To symbolically solve
 ##+BEGIN_LaTeX
     \begin{equation}
     \int_0^y \! cos(2x) \, dx.
     \end{equation}
 ##+END_LaTeX
 
-*** Type this at the REPL:
-#+BEGIN_SRC reduce
-    1: int(cos(2x),x,y,2y);
-#+END_SRC
-
-*** Get this solution:
+*** Start REDUCE REPL
 #+BEGIN_EXAMPLE
-     SIN(4*Y) - SIN(2*Y)
-    ---------------------
+    Reduce (Free CSL version), 18-Aug-10 ...
+
+    1: int(cos(2x),x,y,2y);
+
+    sin(4*y) - sin(2*y)
+   ---------------------
              2
 #+END_EXAMPLE
 
@@ -56,14 +55,14 @@
 * Main Part
 
 ** Definition of embedded (a.k.a. internal[fn:1]) DSL
-*** Enumerating some of the important attributes:
+*** Enumerating some of the important attributes
     1. targeted towards specific problem
-       - limited in the scope as oppose to general purpose language
-    2. usually not turing complete
-    3. self-documenting
+    2. limited in the scope as oppose to general purpose language
+    3. usually not turing complete
+    4. self-documenting
 
 ** Definition of embedded DSL _continue
-*** Enumerating more of the important attributes:
+*** Enumerating more of the important attributes
     1. bottom-up design[fn:2]
     2. parasitic in its nature
        - feeds on host abstract syntax tree (AST)
@@ -113,10 +112,10 @@
   - code as data
   - macrology
 
-** Common usage in
-
+** Some of DSLs that we wrote
 *** configuration language
-*** Every application needs a DSL
+*** market data message specification
+*** mmap file buffer to records mapping
 
 ** Market Data Message Specification
    #+CAPTION:    One small piece of huge spec
@@ -139,6 +138,86 @@
    "Number of the current daily session. This field
    will begin as 0 and increment thereafter if the
    feed is restarted during the trading day."])
+#+END_SRC
+
+** Some of the generated code for the message spec
+#+BEGIN_SRC clojure
+(defrecord PacketHeader [buffer offset]
+  Sizable
+  (length [this] 16)
+  PacketHeaderAccessor
+  (getSequenceNumber
+   [this]
+   (parse-numeric buffer (+ (int offset) (int 0)) 8))
+  (lengthSequenceNumber [this] 8)
+  (offsetSequenceNumber [this] 0)
+  (positionSequenceNumber [this] (+ offset 0))
+;; ...
+  (lengthMessageCount [this] 2)
+  (getSessionIdentifier
+   [this]           ; 8 + 2 = 10 bytes offset
+   (parse-alphanumeric buffer (+ (int offset) (int 10)) 1))
+   (offsetSessionIdentifier [this] 10)
+   (positionSessionIdentifier [this] (+ offset 10)))
+#+END_SRC
+
+** Implementation of defmessage
+#+BEGIN_SRC clojure
+(defmacro defmessage [name & fields]
+  (emit-message name fields))
+#+END_SRC
+
+** Implementation of defmessage _continue
+#+BEGIN_SRC clojure
+(defn- emit-message [name fields]
+  (let [reader-name (symbol (str name "Accessor"))
+        buffer-symbol 'buffer
+        offset-symbol 'offset]
+    `(do
+       (definterface ~reader-name
+         ~@(emit-message-signatures fields))
+       (defrecord ~name [^ByteBuffer ~buffer-symbol
+                         ^int ~offset-symbol]
+         Sizable (length [~'this] ~(emit-length fields))
+         ~reader-name
+         ~@(emit-message-methods fields buffer-symbol
+                                 offset-symbol))
+       (deftype ~(symbol (str name "Parser")) []
+         Parsable   ; just wrap it
+         (parse [~'this ~buffer-symbol ~offset-symbol]
+                (new ~name ~buffer-symbol ~offset-symbol)))
+
+       (.addMethod pp/code-dispatch ~name pprint-message)
+       (.addMethod pp/simple-dispatch ~name pprint-message))))
+#+END_SRC
+
+** Implementation of defmessage _continue
+#+BEGIN_SRC clojure
+(defn- emit-type [format length]
+  ({:numeric ({1 Short
+               2 Integer
+               4 Long
+               8 BigInteger} length)
+    :alpha String
+    :alphanumeric Long
+    :mixed parser/byte-array-type} format))
+#+END_SRC
+
+** Implementation of defmessage _continue
+#+BEGIN_SRC clojure
+(defn- emit-message-method-name [p n]
+  (symbol (str p (name n))))
+
+(defn- emit-message-signatures [fields]
+  (mapcat
+     (fn [[n l f c]]
+       [`(~(with-meta (emit-message-method-name "get" n)
+             {:tag (emit-type f l)}) [] ~c)
+;; ...
+        `(~(with-meta (emit-message-method-name "pos" n)
+             {:tag Integer}) []
+             "Position of field in the buffer.")])
+     fields))
 #+END_SRC
 
 ** Memory Map Description Language
@@ -167,7 +246,7 @@
    #+ATTR_LaTeX: width=1.0\textwidth
    [[file:defmmap-macroexpand.png]]
 
-** Get Java API too
+** Get a Java API too
 #+ATTR_LaTeX: width=1.0\textwidth
 #+BEGIN_DITAA java-class-diagram.png --scale 2.5 -no-separation --no-shadows
 /-----------------------------------------------\
@@ -201,35 +280,9 @@
 *** xmpp:i@digash.com
 *** http://blog.digash.com
 
-
-* Notes
-
-** and some Clojure
-
-#+begin_LaTeX
-\begin{lstlisting}[language=Clojure]
-(defn slice [^ByteBuffer b n]
-  (vec (for [p (range 0 (.capacity b) (length MarketDataMmap))]
-         (let [^ByteBuffer b (.position b p)
-               ^ByteBuffer s (.slice b)]
-           (.limit s (length MarketDataMmap))))))
-\end{lstlisting}
-#+end_LaTeX
-
-#+srcname: basic-clojure
-#+begin_src clojure :results silent
-  (+ 1 4)
-#+end_src
-
-#+srcname: sh
-#+begin_src sh :results silent
-  ls
-#+end_src
-
-# LocalWords:  SICP
-
-
 * Footnotes
 
 [fn:1] [[http://martinfowler.com/articles/languageWorkbench.html][Language Workbenches: The Killer-App for Domain Specific Languages?]]
 [fn:2] [[http://www.paulgraham.com/progbot.html][Programming Bottom-Up]]
+
+# LocalWords:  SICP
